@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer</title>
+<link rel="icon" type="image/png" sizes="256x256" href="icon.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="icon.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+  <link rel="shortcut icon" href="timer.ico">
+  <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="shortcut icon" type="image/png" href="icon.png">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: #4d4c4c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Top Right Header Controls */
+    .top-header-controls {
+      position: fixed;
+      top: 1.2rem;
+      right: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 10000;
+    }
+
+    .top-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(26, 26, 26, 0.4);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+    .top-btn:hover {
+      background: rgba(40, 40, 40, 0.6);
+    }
+    .top-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Fullscreen button SVG with hover enlargement animation */
+    .top-btn svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .top-btn:hover svg {
+      transform: scale(1.22);
+    }
+
+    /* Rotating Settings PNG Icon */
+    .settings-btn img {
+      width: 28px;
+      height: 28px;
+      display: block;
+      filter: invert(1);
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .settings-btn:hover img {
+      transform: rotate(180deg);
+    }
+
+    /* Settings Slide-out Menu */
+    .settings-menu {
+      position: fixed;
+      top: 4.8rem;
+      right: 1.5rem;
+      background: #15181d;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 10000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(-12px) scale(0.96);
+      pointer-events: none;
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      min-width: 240px;
+    }
+    .settings-menu.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1.5rem;
+    }
+    .ct-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000000;
+    }
+    .ct-stage canvas { display: block; width: 100%; height: 100%; }
+    .ct-timeframe {
+      position: absolute;
+      left: 1.4rem;
+      bottom: 1.4rem;
+      border: none;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .ct-time {
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      font-size: clamp(2rem, 8vw, 6rem);
+      line-height: 1;
+      color: #fff;
+    }
+    .ct-time.finished {
+      color: #ff4d4d;
+      animation: ctBlink 0.7s step-start infinite;
+    }
+    @keyframes ctBlink { 50% { opacity: 0.15; } }
+
+    /* Controls Bar */
+    .ct-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      justify-content: center;
+      align-items: center;
+      margin-top: 1.4rem;
+      width: 100%;
+    }
+    .btn {
+      height: 52px;
+      padding: 0 1.8rem;
+      border-radius: 10px;
+      font-size: 1.15rem;
+      cursor: pointer;
+      border: 1px solid #222;
+      background: #1a1a1a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-start {
+      background: #00c853;
+      border-color: #00c853;
+      font-weight: 700;
+      min-width: 130px;
+      letter-spacing: 0.03em;
+    }
+    .btn-reset {
+      background: #2a2a2a;
+      font-weight: 600;
+      min-width: 110px;
+    }
+
+    .input-box {
+      height: 52px;
+      text-align: center;
+      padding: 0.3rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 1.25rem;
+      font-family: monospace;
+      font-weight: 700;
+    }
+    .ct-custom { width: 190px; }
+    .ct-custom:focus {
+      outline: none;
+      border-color: #00c853;
+    }
+
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a1a1a;
+      padding: 6px 16px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      height: 52px;
+    }
+    .range-wrap span {
+      font-size: 1.1rem;
+      color: #bbb;
+      font-weight: 600;
+    }
+    .range-input {
+      width: 82px;
+      height: 40px;
+      border: 1px solid #383838;
+      background: #252525;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .range-input:focus {
+      outline: none;
+      border-color: #00c853;
+    }
+    .btn-icon {
+      height: 40px;
+      padding: 0 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid #383838;
+      background: #282828;
+      color: #fff;
+      font-size: 1.2rem;
+    }
+    .btn-confirm { background: #00c853; border-color: #00c853; color: #fff; font-weight: bold; display: none; }
+    .btn-confirm.show { display: flex; }
+
+    /* Colors in Settings panel */
+    .color-section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: -4px;
+      font-weight: bold;
+    }
+    .color-options-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .color-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #1e2228;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #2d333b;
+    }
+    .color-label { font-size: 0.9rem; color: #bbb; font-weight: 600; min-width: 50px; }
+    .ct-swatch { width: 30px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; }
+    .hex-input {
+      width: 90px;
+      height: 32px;
+      text-transform: uppercase;
+      font-size: 0.95rem;
+      border: 1px solid #444;
+      background: #111;
+      border-radius: 6px;
+      color: #fff;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    .ct-stage.ct-fs { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; border-radius: 0; z-index: 9999; }
+    .ct-stage:fullscreen { width: 100vw; height: 100vh; border-radius: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Right Header Icons -->
+  <div class="top-header-controls">
+    <button class="top-btn" id="ct-fs" title="Toggle Fullscreen">
+      <svg viewBox="0 0 24 24">
+        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+      </svg>
+    </button>
+    <button class="top-btn settings-btn" id="ct-settings-toggle" title="Settings">
+      <img src="settings.png" alt="Settings">
+    </button>
+  </div>
+
+  <!-- Settings Dropdown -->
+  <div class="settings-menu" id="ct-settings-menu">
+    <div class="color-section-title">Colors</div>
+    <div class="color-options-wrap">
+      <div class="color-wrap" title="Outer Webpage Background Color">
+        <span class="color-label">Page:</span>
+        <input type="color" id="ct-page-color" class="ct-swatch" value="#4d4c4c">
+        <input type="text" id="ct-page-hex" class="hex-input" value="#4D4C4C" maxlength="7">
+      </div>
+
+      <div class="color-wrap" title="Foreground Vanishing Layer Color">
+        <span class="color-label">FG:</span>
+        <input type="color" id="ct-disc" class="ct-swatch" value="#4c4c4c">
+        <input type="text" id="ct-fg-hex" class="hex-input" value="#4C4C4C" maxlength="7">
+      </div>
+
+      <div class="color-wrap" title="Stage Background Layer Color">
+        <span class="color-label">Stage:</span>
+        <input type="color" id="ct-main-bgcolor" class="ct-swatch" value="#000000">
+        <input type="text" id="ct-main-bg-hex" class="hex-input" value="#000000" maxlength="7">
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="ct-stage" id="ct-stage">
+      <canvas id="ct-canvas" width="900" height="506"></canvas>
+      <div class="ct-timeframe"><span class="ct-time" id="ct-time">0:00</span></div>
+    </div>
+
+    <div class="ct-controls">
+      <!-- Start and Reset Buttons Side-by-Side -->
+      <button class="btn btn-start" id="ct-startpause">Start</button>
+      <button class="btn btn-reset" id="ct-reset">Reset</button>
+
+      <!-- Manual Duration Input -->
+      <input type="text" class="input-box ct-custom" id="ct-custom" placeholder="Minutes / h:m:s" title="Set duration (e.g. 25, 45:00, 1:30:00, 90m)">
+
+      <!-- From / To / Now Calculator -->
+      <div class="range-wrap" title="From, To, and Current Now Time">
+        <span>From:</span>
+        <input type="text" id="ct-from" class="range-input" placeholder="4:00">
+        <span>To:</span>
+        <input type="text" id="ct-to" class="range-input" placeholder="5:00">
+        <span>Now:</span>
+        <input type="text" id="ct-now" class="range-input" placeholder="4:30">
+        <button type="button" class="btn-icon" id="ct-set-now" title="Insert Current Time">⏱</button>
+        <button type="button" class="btn-icon btn-confirm" id="ct-confirm-btn" title="Confirm & Start">✓</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var stage = document.getElementById('ct-stage');
+    var canvas = document.getElementById('ct-canvas');
+    var ctx = canvas.getContext('2d');
+    var timeEl = document.getElementById('ct-time');
+    var startBtn = document.getElementById('ct-startpause');
+    var resetBtn = document.getElementById('ct-reset');
+    var fsBtn = document.getElementById('ct-fs');
+
+    var settingsToggle = document.getElementById('ct-settings-toggle');
+    var settingsMenu = document.getElementById('ct-settings-menu');
+
+    var customIn = document.getElementById('ct-custom');
+    var fromIn = document.getElementById('ct-from');
+    var toIn = document.getElementById('ct-to');
+    var nowIn = document.getElementById('ct-now');
+    var setNowBtn = document.getElementById('ct-set-now');
+    var confirmBtn = document.getElementById('ct-confirm-btn');
+
+    var pageColorIn = document.getElementById('ct-page-color');
+    var pageHexIn = document.getElementById('ct-page-hex');
+    var discIn = document.getElementById('ct-disc');
+    var fgHexIn = document.getElementById('ct-fg-hex');
+    var bgIn = document.getElementById('ct-main-bgcolor');
+    var bgHexIn = document.getElementById('ct-main-bg-hex');
+
+    var audioCtx = null;
+    var alarmInterval = null;
+
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    function startAlarm() {
+      playBeep();
+      if (!alarmInterval) alarmInterval = setInterval(playBeep, 800);
+    }
+
+    function stopAlarm() {
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+      }
+    }
+
+    function validHex(h) { return /^#([0-9A-F]{3}){1,2}$/i.test(h.trim()); }
+    function formatHex(h) {
+      h = h.trim();
+      if (h.charAt(0) !== '#') h = '#' + h;
+      return h.toUpperCase();
+    }
+
+    function parseClockToSec(t) {
+      if (!t) return null;
+      var clean = t.trim().toLowerCase();
+      var parts = clean.split(':').map(function (p) { return parseInt(p, 10); });
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return (parts[0] * 3600) + (parts[1] * 60);
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+      return null;
+    }
+
+    function parseDuration(val) {
+      if (!val) return null;
+      var str = val.trim().toLowerCase();
+      var totalSec = 0;
+      if (str.includes('h') || str.includes('m') || str.includes('s')) {
+        var hMatch = str.match(/(\d+(?:\.\d+)?)\s*h/);
+        var mMatch = str.match(/(\d+(?:\.\d+)?)\s*m/);
+        var sMatch = str.match(/(\d+(?:\.\d+)?)\s*s/);
+        if (hMatch) totalSec += parseFloat(hMatch[1]) * 3600;
+        if (mMatch) totalSec += parseFloat(mMatch[1]) * 60;
+        if (sMatch) totalSec += parseFloat(sMatch[1]);
+        return totalSec > 0 ? Math.round(totalSec * 1000) : null;
+      }
+      if (str.includes(':')) {
+        var parts = str.split(':').map(function (p) { return parseFloat(p) || 0; });
+        if (parts.length === 3) totalSec = (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        else if (parts.length === 2) totalSec = (parts[0] * 60) + parts[1];
+        return totalSec > 0 ? Math.round(totalSec * 1000) : null;
+      }
+      var num = parseFloat(str);
+      return !isNaN(num) && num > 0 ? Math.round(num * 60 * 1000) : null;
+    }
+
+    function showConfirm() { confirmBtn.classList.add('show'); }
+    function hideConfirm() { confirmBtn.classList.remove('show'); }
+
+    function calculateRangeDiff() {
+      var sFrom = parseClockToSec(fromIn.value);
+      var sTo = parseClockToSec(toIn.value);
+      var sNow = parseClockToSec(nowIn.value);
+
+      if (sFrom !== null && sTo !== null) {
+        var totalSec = sTo - sFrom;
+        if (totalSec <= 0) totalSec += 24 * 3600;
+        durationMs = Math.max(1000, totalSec * 1000);
+
+        if (sNow !== null) {
+          var remainSec = sTo - sNow;
+          if (remainSec <= 0 && sTo <= sFrom) remainSec += 24 * 3600;
+          remainSec = Math.max(0, Math.min(totalSec, remainSec));
+          remainingMs = remainSec * 1000;
+        } else {
+          remainingMs = durationMs;
+        }
+
+        saveState();
+        draw();
+        render();
+        start();
+        hideConfirm();
+      }
+    }
+
+    var savedDuration = parseInt(localStorage.getItem('vt_saved_duration'), 10) || 1500000;
+    var savedRemaining = parseInt(localStorage.getItem('vt_saved_remaining'), 10) || savedDuration;
+    var durationMs = savedDuration;
+    var remainingMs = savedRemaining;
+    var running = false, finished = false, endAt = 0, raf = null, bgTimer = null;
+
+    var pageColor = localStorage.getItem('vt_saved_page') || '#4d4c4c';
+    var bgColor = localStorage.getItem('vt_saved_bg') || '#000000';
+    var fgColor = localStorage.getItem('vt_saved_fg') || '#4c4c4c';
+
+    document.documentElement.style.backgroundColor = pageColor;
+    document.body.style.backgroundColor = pageColor;
+    pageColorIn.value = pageColor;
+    pageHexIn.value = pageColor.toUpperCase();
+
+    discIn.value = fgColor;
+    fgHexIn.value = fgColor.toUpperCase();
+    bgIn.value = bgColor;
+    bgHexIn.value = bgColor.toUpperCase();
+
+    function setPageColor(color) {
+      pageColor = color;
+      document.documentElement.style.backgroundColor = color;
+      document.body.style.backgroundColor = color;
+      pageColorIn.value = color;
+      pageHexIn.value = color.toUpperCase();
+      saveState();
+    }
+
+    function saveState() {
+      localStorage.setItem('vt_saved_duration', durationMs);
+      localStorage.setItem('vt_saved_remaining', remainingMs);
+      localStorage.setItem('vt_saved_page', pageColor);
+      localStorage.setItem('vt_saved_bg', bgColor);
+      localStorage.setItem('vt_saved_fg', fgColor);
+    }
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function fmt(ms) {
+      var s = Math.max(0, Math.round(ms / 1000));
+      var h = Math.floor(s / 3600); s -= h * 3600;
+      var m = Math.floor(s / 60); s -= m * 60;
+      return h > 0 ? h + ':' + pad(m) + ':' + pad(s) : m + ':' + pad(s);
+    }
+
+    function resize() {
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.round(stage.clientWidth * dpr));
+      canvas.height = Math.max(1, Math.round(stage.clientHeight * dpr));
+      draw();
+    }
+
+    function draw() {
+      var W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, W, H);
+
+      var progress = durationMs > 0 ? remainingMs / durationMs : 0;
+      if (progress > 0.0005) {
+        ctx.fillStyle = fgColor;
+        var y = H * (1 - progress);
+        var h = H * progress;
+        ctx.fillRect(0, y, W, h);
+      }
+    }
+
+    function render() { timeEl.textContent = finished ? '0:00' : fmt(remainingMs); }
+    function setBtn() { startBtn.textContent = running ? 'Pause' : (finished ? 'Start' : (remainingMs < durationMs ? 'Resume' : 'Start')); }
+
+    function tick() {
+      if (!running) return;
+      var now = Date.now();
+      remainingMs = Math.max(0, endAt - now);
+      if (remainingMs <= 0) {
+        remainingMs = 0;
+        draw();
+        render();
+        complete();
+        saveState();
+      }
+    }
+
+    function loop() {
+      if (!running) return;
+      tick();
+      if (running) {
+        draw();
+        render();
+        raf = requestAnimationFrame(loop);
+      }
+    }
+
+    function start() {
+      if (running) return;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      if (finished) { finished = false; timeEl.classList.remove('finished'); remainingMs = durationMs; }
+      if (remainingMs <= 0) remainingMs = durationMs;
+      stopAlarm();
+      running = true;
+      endAt = Date.now() + remainingMs;
+      setBtn();
+      loop();
+
+      if (bgTimer) clearInterval(bgTimer);
+      bgTimer = setInterval(tick, 200);
+    }
+
+    function pause() {
+      if (!running) return;
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      if (bgTimer) clearInterval(bgTimer);
+      remainingMs = Math.max(0, endAt - Date.now());
+      setBtn();
+      draw();
+      render();
+      saveState();
+    }
+
+    function toggle() { if (running) pause(); else start(); }
+
+    function complete() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      if (bgTimer) clearInterval(bgTimer);
+      finished = true;
+      timeEl.classList.add('finished');
+      setBtn();
+      render();
+      startAlarm();
+    }
+
+    function reset() {
+      running = false;
+      finished = false;
+      if (raf) cancelAnimationFrame(raf);
+      if (bgTimer) clearInterval(bgTimer);
+      stopAlarm();
+      timeEl.classList.remove('finished');
+      remainingMs = durationMs;
+      setBtn();
+      draw();
+      render();
+      saveState();
+      hideConfirm();
+    }
+
+    function setDuration(ms) {
+      durationMs = Math.max(1000, ms);
+      remainingMs = durationMs;
+      saveState();
+      if (!running && !finished) { draw(); render(); setBtn(); }
+    }
+
+    var fake = false;
+    function goFS() {
+      var req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+      if (req) { try { var p = req.call(stage); if (p && p.catch) p.catch(fakeFS); } catch (e) { fakeFS(); } }
+      else fakeFS();
+      setTimeout(resize, 60);
+    }
+    function fakeFS() { fake = true; stage.classList.add('ct-fs'); resize(); }
+    function exitFS() {
+      if (fake) { fake = false; stage.classList.remove('ct-fs'); resize(); return; }
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+    function isFS() { return fake || document.fullscreenElement === stage || document.webkitFullscreenElement === stage; }
+    function toggleFS() { if (isFS()) exitFS(); else goFS(); }
+
+    document.addEventListener('fullscreenchange', function () {
+      var el = document.fullscreenElement || document.webkitFullscreenElement;
+      if (el !== stage && !fake) stage.classList.remove('ct-fs');
+      setTimeout(resize, 60);
+    });
+
+    startBtn.addEventListener('click', toggle);
+    resetBtn.addEventListener('click', function () { reset(); if (isFS()) exitFS(); });
+    fsBtn.addEventListener('click', toggleFS);
+
+    settingsToggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      settingsMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!settingsMenu.contains(e.target) && e.target !== settingsToggle) {
+        settingsMenu.classList.remove('open');
+      }
+    });
+
+    pageColorIn.addEventListener('input', function () { setPageColor(pageColorIn.value); });
+    pageHexIn.addEventListener('change', function () {
+      var val = formatHex(pageHexIn.value);
+      if (validHex(val)) setPageColor(val);
+    });
+
+    discIn.addEventListener('input', function () {
+      fgColor = discIn.value;
+      fgHexIn.value = fgColor.toUpperCase();
+      draw();
+      saveState();
+    });
+    fgHexIn.addEventListener('change', function () {
+      var val = formatHex(fgHexIn.value);
+      if (validHex(val)) {
+        fgColor = val;
+        discIn.value = val;
+        fgHexIn.value = val;
+        draw();
+        saveState();
+      }
+    });
+
+    bgIn.addEventListener('input', function () {
+      bgColor = bgIn.value;
+      bgHexIn.value = bgColor.toUpperCase();
+      draw();
+      saveState();
+    });
+    bgHexIn.addEventListener('change', function () {
+      var val = formatHex(bgHexIn.value);
+      if (validHex(val)) {
+        bgColor = val;
+        bgIn.value = val;
+        bgHexIn.value = val;
+        draw();
+        saveState();
+      }
+    });
+
+    customIn.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        var ms = parseDuration(customIn.value);
+        if (ms && ms > 0) {
+          setDuration(ms);
+          start();
+          customIn.blur();
+        }
+      }
+    });
+    customIn.addEventListener('change', function () {
+      var ms = parseDuration(customIn.value);
+      if (ms && ms > 0) setDuration(ms);
+    });
+
+    setNowBtn.addEventListener('click', function () {
+      var d = new Date();
+      nowIn.value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      showConfirm();
+    });
+
+    [fromIn, toIn, nowIn].forEach(function (input) {
+      input.addEventListener('input', showConfirm);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') calculateRangeDiff();
+      });
+    });
+
+    confirmBtn.addEventListener('click', calculateRangeDiff);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && fake) exitFS();
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    render();
+    setBtn();
+  })();
+  </script>
+</body>
+</html>
