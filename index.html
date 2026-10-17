@@ -694,8 +694,11 @@
       }
     }
 
-    var alarmAudio = new Audio('Alarm03.wav');
+   var alarmAudio = new Audio('Alarm03.wav');
     alarmAudio.preload = 'auto';
+
+    var longBreakAudio = new Audio('Alarm01.wav');
+    longBreakAudio.preload = 'auto';
 
     var audioCtx = null;
     function playFallbackChime() {
@@ -716,7 +719,8 @@
     }
 
     function triggerAlarm() {
-      var playPromise = alarmAudio.play();
+      var soundToPlay = (activeMode === 'long') ? longBreakAudio : alarmAudio;
+      var playPromise = soundToPlay.play();
       if (playPromise !== undefined) {
         playPromise.catch(function () {
           playFallbackChime();
