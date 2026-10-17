@@ -18,12 +18,99 @@
       width: 100%;
       height: 100vh;
       overflow: hidden;
-      background: #4d4c4c;
+      background: var(--page-bg, #4d4c4c);
+      transition: background-color 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Century Gothic Typeface for Text & Mode UI */
+    .pomo-app-title, .mode-tab, .toggle-container {
+      font-family: 'Century Gothic', -apple-system, sans-serif;
+    }
+
+    /* Top Left Header Toggle Switch & App Mode Title */
+    .top-left-header-section {
+      position: fixed;
+      top: 1.5rem;
+      left: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      z-index: 10000;
+    }
+
+    .pomo-app-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      text-transform: uppercase;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Pill Toggle Switch */
+    .toggle-container {
+      position: relative;
+      width: 120px;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.15s ease;
+    }
+    .toggle-container:active {
+      transform: scale(0.95);
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 54px;
+      height: 36px;
+      background: var(--page-bg, #4d4c4c);
+      border-radius: 18px;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.6s ease;
+      z-index: 1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .toggle-option {
+      flex: 1;
+      text-align: center;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .toggle-option svg {
+      width: 20px;
+      height: 20px;
+      fill: rgba(255, 255, 255, 0.45);
+      transition: fill 0.3s ease;
+    }
+
+    .toggle-container.timer-active .toggle-slider {
+      transform: translateX(0);
+    }
+    .toggle-container.pomo-active .toggle-slider {
+      transform: translateX(58px);
+    }
+
+    .toggle-container.timer-active .toggle-option.opt-timer svg,
+    .toggle-container.pomo-active .toggle-option.opt-pomo svg {
+      fill: #ffffff;
     }
 
     /* Top Right Header Controls */
@@ -50,16 +137,18 @@
       justify-content: center;
       padding: 0;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: background 0.2s ease, transform 0.15s ease;
+      opacity: 0.75;
+      transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease;
     }
     .top-btn:hover {
       background: rgba(40, 40, 40, 0.6);
+      opacity: 1;
     }
     .top-btn:active {
       transform: scale(0.95);
+      opacity: 1;
     }
 
-    /* Fullscreen button SVG with hover enlargement animation */
     .top-btn svg {
       width: 28px;
       height: 28px;
@@ -70,7 +159,6 @@
       transform: scale(1.22);
     }
 
-    /* Rotating Settings PNG Icon */
     .settings-btn img {
       width: 28px;
       height: 28px;
@@ -100,7 +188,9 @@
       transform: translateY(-12px) scale(0.96);
       pointer-events: none;
       transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      min-width: 240px;
+      min-width: 260px;
+      max-height: calc(100vh - 6rem);
+      overflow-y: auto;
     }
     .settings-menu.open {
       opacity: 1;
@@ -108,7 +198,7 @@
       pointer-events: auto;
     }
 
-    /* Tube Main Container Layout */
+    /* Main Vertical Layout */
     .container {
       width: 100%;
       height: 100vh;
@@ -117,33 +207,102 @@
       align-items: center;
       justify-content: center;
       padding: 1.2rem 2rem;
-      gap: 1.4rem;
+      gap: 1.2rem;
+    }
+
+    /* Clean Sliding Underline Menu (Click-Only Movement) */
+    .mode-bar {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: min(100%, 1050px);
+      margin: 0 auto;
+      z-index: 1;
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, margin-bottom 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .mode-bar.fell-behind {
+      transform: translateY(65px) scale(0.85);
+      opacity: 0;
+      pointer-events: none;
+      margin-bottom: -52px;
+    }
+
+    /* 0% Background Opacity Sub-tabs, 15% on Hover */
+    .mode-tab {
+      flex: 1;
+      text-align: center;
+      background: rgba(0, 0, 0, 0);
+      color: var(--tab-text-color, #ffffff);
+      border: none;
+      padding: 0.7rem 0;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 24px;
+      font-weight: 300
+      letter-spacing: 0.03em;
+      position: relative;
+      z-index: 1;
+      transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .mode-tab:hover {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    /* Moving Underline Indicator (Glides smoothly only on click/active change) */
+    .mode-slider {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 33.3333%;
+      height: 4px;
+      background: var(--tab-text-color, #ffffff);
+      border: none;
+      margin: 0;
+      border-radius: 2px;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s ease;
+      z-index: 2;
     }
 
     /* Centered Tube/Stage */
     .ct-stage {
       position: relative;
+      z-index: 5;
       width: min(100%, 1050px);
       aspect-ratio: 16 / 9;
-      max-height: calc(100vh - 150px);
+      max-height: calc(100vh - 210px);
       margin: 0 auto;
       border-radius: 20px;
       overflow: hidden;
       background: #000000;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
       flex-shrink: 0;
+      transition: width 0.55s cubic-bezier(0.25, 1, 0.5, 1), max-height 0.55s cubic-bezier(0.25, 1, 0.5, 1), transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+
+    /* Tube Enlarges When Sub-Tabs Fall Behind It */
+    .ct-stage.enlarged {
+      width: min(100%, 1140px);
+      max-height: calc(100vh - 145px);
+      transform: scale(1.02);
+    }
+
     .ct-stage canvas { display: block; width: 100%; height: 100%; }
+
     .ct-timeframe {
       position: absolute;
       left: 1.8rem;
       bottom: 1.8rem;
       border: none;
       background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
       pointer-events: none;
       white-space: nowrap;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
     }
     .ct-time {
       font-family: monospace;
@@ -160,8 +319,25 @@
     }
     @keyframes ctBlink { 50% { opacity: 0.15; } }
 
+    .pomo-cycle-badge {
+      font-family: 'Century Gothic', -apple-system, sans-serif;
+      font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.35rem 0.8rem;
+      border-radius: 8px;
+      letter-spacing: 0.04em;
+      display: none;
+    }
+    .pomo-cycle-badge.show {
+      display: inline-block;
+    }
+
     /* Controls Bar */
     .ct-controls {
+      position: relative;
+      z-index: 6;
       display: flex;
       flex-wrap: wrap;
       gap: 0.8rem;
@@ -182,9 +358,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s ease, transform 0.1s ease;
+      opacity: 0.75;
+      transition: opacity 0.2s ease, background 0.2s ease, transform 0.1s ease;
     }
-    .btn:active { transform: scale(0.97); }
+    .btn:hover { opacity: 1; }
+    .btn:active { transform: scale(0.97); opacity: 1; }
     .btn-start {
       background: #00c853;
       border-color: #00c853;
@@ -209,12 +387,12 @@
       font-size: 1.25rem;
       font-family: monospace;
       font-weight: 700;
+      opacity: 0.75;
+      transition: opacity 0.2s ease, border-color 0.2s ease;
     }
+    .input-box:hover, .input-box:focus { opacity: 1; }
     .ct-custom { width: 190px; }
-    .ct-custom:focus {
-      outline: none;
-      border-color: #00c853;
-    }
+    .ct-custom:focus { outline: none; border-color: #00c853; }
 
     .range-wrap {
       display: flex;
@@ -225,12 +403,11 @@
       border-radius: 10px;
       border: 1px solid #333;
       height: 52px;
+      opacity: 0.75;
+      transition: opacity 0.2s ease;
     }
-    .range-wrap span {
-      font-size: 1.1rem;
-      color: #bbb;
-      font-weight: 600;
-    }
+    .range-wrap:hover, .range-wrap:focus-within { opacity: 1; }
+    .range-wrap span { font-size: 1.1rem; color: #bbb; font-weight: 600; }
     .range-input {
       width: 82px;
       height: 40px;
@@ -243,10 +420,7 @@
       font-size: 1.2rem;
       font-weight: 700;
     }
-    .range-input:focus {
-      outline: none;
-      border-color: #00c853;
-    }
+    .range-input:focus { outline: none; border-color: #00c853; }
     .btn-icon {
       height: 40px;
       padding: 0 0.9rem;
@@ -259,25 +433,27 @@
       background: #282828;
       color: #fff;
       font-size: 1.2rem;
+      opacity: 0.75;
+      transition: opacity 0.2s ease;
     }
+    .btn-icon:hover { opacity: 1; }
     .btn-confirm { background: #00c853; border-color: #00c853; color: #fff; font-weight: bold; display: none; }
     .btn-confirm.show { display: flex; }
 
-    /* Colors in Settings panel */
+    /* Settings Components */
     .color-section-title {
       font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #888;
-      margin-bottom: -4px;
       font-weight: bold;
     }
-    .color-options-wrap {
+    .settings-group {
       display: flex;
       flex-direction: column;
       gap: 0.6rem;
     }
-    .color-wrap {
+    .color-wrap, .setting-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -287,9 +463,13 @@
       border-radius: 8px;
       border: 1px solid #2d333b;
     }
-    .color-label { font-size: 0.9rem; color: #bbb; font-weight: 600; min-width: 50px; }
+    .color-label, .setting-label {
+      font-size: 0.88rem;
+      color: #bbb;
+      font-weight: 600;
+    }
     .ct-swatch { width: 30px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; }
-    .hex-input {
+    .hex-input, .num-input {
       width: 90px;
       height: 32px;
       text-transform: uppercase;
@@ -301,14 +481,38 @@
       text-align: center;
       font-family: monospace;
     }
+    .num-input { text-transform: none; }
 
-    .ct-stage.ct-fs { position: fixed; inset: 0; width: 100vw; height: 100vh; max-height: none; margin: 0; border-radius: 0; z-index: 9999; }
-    .ct-stage:fullscreen { width: 100vw; height: 100vh; max-height: none; border-radius: 0; }
+    #settings-pomo-section {
+      display: none;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    #settings-pomo-section.active {
+      display: flex;
+    }
+
+    .ct-stage.ct-fs { position: fixed; inset: 0; width: 100vw; height: 100vh; max-height: none; margin: 0; border-radius: 0; z-index: 9999; transform: none; }
+    .ct-stage:fullscreen { width: 100vw; height: 100vh; max-height: none; border-radius: 0; transform: none; }
   </style>
 </head>
 <body>
 
-  <!-- Top Right Header Icons -->
+  <!-- Top Left Mode Control Header -->
+  <div class="top-left-header-section">
+    <h1 class="pomo-app-title" id="pomo-title-heading">TIMER</h1>
+    <div class="toggle-container timer-active" id="pomo-toggle" title="Switch between Timer and Pomodoro">
+      <div class="toggle-slider"></div>
+      <div class="toggle-option opt-timer">
+        <svg viewBox="0 0 24 24"><path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+      </div>
+      <div class="toggle-option opt-pomo">
+        <svg viewBox="0 0 24 24"><path d="M12 2c-.55 0-1 .45-1 1v1.1c-3.41.46-6.1 3.15-6.56 6.56H3.33c-.55 0-1 .45-1 1s.45 1 1 1h1.1c.46 3.41 3.15 6.1 6.56 6.56V20c0 .55.45 1 1 1s1-.45 1-1v-1.1c3.41-.46 6.1-3.15 6.56-6.56h1.11c.55 0 1-.45 1-1s-.45-1-1-1h-1.11c-.46-3.41-3.15-6.1-6.56-6.56V3c0-.55-.45-1-1-1zm0 4.5c2.48 0 4.5 2.02 4.5 4.5S14.48 15.5 12 15.5 7.5 13.48 7.5 11s2.02-4.5 4.5-4.5z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Right Header Controls -->
   <div class="top-header-controls">
     <button class="top-btn" id="ct-fs" title="Toggle Fullscreen">
       <svg viewBox="0 0 24 24">
@@ -323,43 +527,97 @@
   <!-- Settings Dropdown -->
   <div class="settings-menu" id="ct-settings-menu">
     <div class="color-section-title">Colors</div>
-    <div class="color-options-wrap">
-      <div class="color-wrap" title="Outer Webpage Background Color">
+    <div class="settings-group">
+      <div class="color-wrap" id="standard-page-color-wrap">
         <span class="color-label">Page:</span>
         <input type="color" id="ct-page-color" class="ct-swatch" value="#4d4c4c">
         <input type="text" id="ct-page-hex" class="hex-input" value="#4D4C4C" maxlength="7">
       </div>
-
-      <div class="color-wrap" title="Foreground Vanishing Layer Color">
+      <div class="color-wrap">
         <span class="color-label">FG:</span>
         <input type="color" id="ct-disc" class="ct-swatch" value="#4c4c4c">
         <input type="text" id="ct-fg-hex" class="hex-input" value="#4C4C4C" maxlength="7">
       </div>
-
-      <div class="color-wrap" title="Stage Background Layer Color">
+      <div class="color-wrap">
         <span class="color-label">Stage:</span>
         <input type="color" id="ct-main-bgcolor" class="ct-swatch" value="#000000">
         <input type="text" id="ct-main-bg-hex" class="hex-input" value="#000000" maxlength="7">
       </div>
     </div>
+
+    <div id="settings-pomo-section">
+      <div class="color-section-title" style="margin-top: 0.4rem;">Pomodoro Times (min)</div>
+      <div class="settings-group">
+        <div class="setting-row">
+          <span class="setting-label">Focus:</span>
+          <input type="number" id="pomo-focus-in" class="num-input" min="1" max="180" value="25">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Short Break:</span>
+          <input type="number" id="pomo-short-in" class="num-input" min="1" max="60" value="5">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Long Break:</span>
+          <input type="number" id="pomo-long-in" class="num-input" min="1" max="90" value="15">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Long Interval:</span>
+          <input type="number" id="pomo-interval-in" class="num-input" min="1" max="12" value="4">
+        </div>
+      </div>
+
+      <div class="color-section-title" style="margin-top: 0.4rem;">Mode Theme Colors</div>
+      <div class="settings-group">
+        <div class="color-wrap">
+          <span class="color-label">Focus:</span>
+          <input type="color" id="color-pomo-focus" class="ct-swatch" value="#ba4949">
+          <input type="text" id="hex-pomo-focus" class="hex-input" value="#BA4949" maxlength="7">
+        </div>
+        <div class="color-wrap">
+          <span class="color-label">Short:</span>
+          <input type="color" id="color-pomo-short" class="ct-swatch" value="#38858a">
+          <input type="text" id="hex-pomo-short" class="hex-input" value="#38858A" maxlength="7">
+        </div>
+        <div class="color-wrap">
+          <span class="color-label">Long:</span>
+          <input type="color" id="color-pomo-long" class="ct-swatch" value="#397097">
+          <input type="text" id="hex-pomo-long" class="hex-input" value="#397097" maxlength="7">
+        </div>
+        <div class="color-wrap">
+          <span class="color-label">Tab Text:</span>
+          <input type="color" id="color-tab-text" class="ct-swatch" value="#ffffff">
+          <input type="text" id="hex-tab-text" class="hex-input" value="#FFFFFF" maxlength="7">
+        </div>
+      </div>
+    </div>
   </div>
 
   <main class="container">
-    <div class="ct-stage" id="ct-stage">
+    <!-- Pomodoro Sub-Tabs (Falls behind tube when in Timer mode) -->
+    <nav class="mode-bar fell-behind" id="mode-bar">
+      <button class="mode-tab active" data-mode="pomodoro">Pomodoro</button>
+      <button class="mode-tab" data-mode="short">Short Break</button>
+      <button class="mode-tab" data-mode="long">Long Break</button>
+      <div class="mode-slider" id="mode-slider"></div>
+    </nav>
+
+    <!-- Centered Stage Tube -->
+    <div class="ct-stage enlarged" id="ct-stage">
       <canvas id="ct-canvas" width="900" height="506"></canvas>
-      <div class="ct-timeframe"><span class="ct-time" id="ct-time">0:00</span></div>
+      <div class="ct-timeframe">
+        <span class="ct-time" id="ct-time">0:00</span>
+        <span class="pomo-cycle-badge" id="pomo-cycle-badge">#1 / 4</span>
+      </div>
     </div>
 
+    <!-- Controls Row -->
     <div class="ct-controls">
-      <!-- Start and Reset Buttons Side-by-Side -->
       <button class="btn btn-start" id="ct-startpause">Start</button>
       <button class="btn btn-reset" id="ct-reset">Reset</button>
 
-      <!-- Manual Duration Input -->
       <input type="text" class="input-box ct-custom" id="ct-custom" placeholder="Minutes / h:m:s" title="Set duration (e.g. 25, 45:00, 1:30:00, 90m)">
 
-      <!-- From / To / Now Calculator -->
-      <div class="range-wrap" title="From, To, and Current Now Time">
+      <div class="range-wrap" id="range-wrap" title="From, To, and Current Now Time">
         <span>From:</span>
         <input type="text" id="ct-from" class="range-input" placeholder="4:00">
         <span>To:</span>
@@ -379,14 +637,20 @@
     var canvas = document.getElementById('ct-canvas');
     var ctx = canvas.getContext('2d');
     var timeEl = document.getElementById('ct-time');
+    var cycleBadge = document.getElementById('pomo-cycle-badge');
     var startBtn = document.getElementById('ct-startpause');
     var resetBtn = document.getElementById('ct-reset');
     var fsBtn = document.getElementById('ct-fs');
 
+    var pomoToggle = document.getElementById('pomo-toggle');
+    var pomoTitleHeading = document.getElementById('pomo-title-heading');
     var settingsToggle = document.getElementById('ct-settings-toggle');
     var settingsMenu = document.getElementById('ct-settings-menu');
+    var pomoSettingsSection = document.getElementById('settings-pomo-section');
+    var standardPageColorWrap = document.getElementById('standard-page-color-wrap');
 
     var customIn = document.getElementById('ct-custom');
+    var rangeWrap = document.getElementById('range-wrap');
     var fromIn = document.getElementById('ct-from');
     var toIn = document.getElementById('ct-to');
     var nowIn = document.getElementById('ct-now');
@@ -400,10 +664,41 @@
     var bgIn = document.getElementById('ct-main-bgcolor');
     var bgHexIn = document.getElementById('ct-main-bg-hex');
 
-    var audioCtx = null;
-    var alarmInterval = null;
+    var pomoFocusIn = document.getElementById('pomo-focus-in');
+    var pomoShortIn = document.getElementById('pomo-short-in');
+    var pomoLongIn = document.getElementById('pomo-long-in');
+    var pomoIntervalIn = document.getElementById('pomo-interval-in');
 
-    function playBeep() {
+    var colorPomoFocus = document.getElementById('color-pomo-focus');
+    var hexPomoFocus = document.getElementById('hex-pomo-focus');
+    var colorPomoShort = document.getElementById('color-pomo-short');
+    var hexPomoShort = document.getElementById('hex-pomo-short');
+    var colorPomoLong = document.getElementById('color-pomo-long');
+    var hexPomoLong = document.getElementById('hex-pomo-long');
+
+    var colorTabTextIn = document.getElementById('color-tab-text');
+    var hexTabTextIn = document.getElementById('hex-tab-text');
+
+    var modeBar = document.getElementById('mode-bar');
+    var modeTabs = document.querySelectorAll('.mode-tab');
+    var modeSlider = document.getElementById('mode-slider');
+
+    // Percentage-based click-only slider movement
+    function updateSlider() {
+      var index = 0;
+      if (activeMode === 'short') index = 1;
+      else if (activeMode === 'long') index = 2;
+      if (modeSlider) {
+        modeSlider.style.width = '33.3333%';
+        modeSlider.style.transform = 'translateX(' + (index * 100) + '%)';
+      }
+    }
+
+    var alarmAudio = new Audio('Alarm03.wav');
+    alarmAudio.preload = 'auto';
+
+    var audioCtx = null;
+    function playFallbackChime() {
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -412,25 +707,58 @@
         osc.type = 'sine';
         osc.frequency.setValueAtTime(880, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.35);
+        osc.stop(audioCtx.currentTime + 0.5);
       } catch (e) {}
     }
 
-    function startAlarm() {
-      playBeep();
-      if (!alarmInterval) alarmInterval = setInterval(playBeep, 800);
-    }
-
-    function stopAlarm() {
-      if (alarmInterval) {
-        clearInterval(alarmInterval);
-        alarmInterval = null;
+    function triggerAlarm() {
+      var playPromise = alarmAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(function () {
+          playFallbackChime();
+        });
       }
     }
+
+    var activeMode = localStorage.getItem('vt_active_mode') || 'custom';
+    var pomoCycleCount = parseInt(localStorage.getItem('vt_pomo_cycle'), 10) || 1;
+    var pomoFocusMin = parseInt(localStorage.getItem('vt_pomo_focus_min'), 10) || 25;
+    var pomoShortMin = parseInt(localStorage.getItem('vt_pomo_short_min'), 10) || 5;
+    var pomoLongMin = parseInt(localStorage.getItem('vt_pomo_long_min'), 10) || 15;
+    var pomoInterval = parseInt(localStorage.getItem('vt_pomo_interval'), 10) || 4;
+
+    pomoFocusIn.value = pomoFocusMin;
+    pomoShortIn.value = pomoShortMin;
+    pomoLongIn.value = pomoLongMin;
+    pomoIntervalIn.value = pomoInterval;
+
+    var colorFocus = localStorage.getItem('vt_color_focus') || '#ba4949';
+    var colorShort = localStorage.getItem('vt_color_short') || '#38858a';
+    var colorLong = localStorage.getItem('vt_color_long') || '#397097';
+    var customPageColor = localStorage.getItem('vt_saved_page') || '#4d4c4c';
+    var tabTextColor = localStorage.getItem('vt_tab_text_color') || '#ffffff';
+
+    colorPomoFocus.value = colorFocus; hexPomoFocus.value = colorFocus.toUpperCase();
+    colorPomoShort.value = colorShort; hexPomoShort.value = colorShort.toUpperCase();
+    colorPomoLong.value = colorLong; hexPomoLong.value = colorLong.toUpperCase();
+    colorTabTextIn.value = tabTextColor; hexTabTextIn.value = tabTextColor.toUpperCase();
+    document.documentElement.style.setProperty('--tab-text-color', tabTextColor);
+
+    var bgColor = localStorage.getItem('vt_saved_bg') || '#000000';
+    var fgColor = localStorage.getItem('vt_saved_fg') || '#4c4c4c';
+
+    discIn.value = fgColor; fgHexIn.value = fgColor.toUpperCase();
+    bgIn.value = bgColor; bgHexIn.value = bgColor.toUpperCase();
+
+    var savedDuration = parseInt(localStorage.getItem('vt_saved_duration'), 10) || 1500000;
+    var savedRemaining = parseInt(localStorage.getItem('vt_saved_remaining'), 10) || savedDuration;
+    var durationMs = savedDuration;
+    var remainingMs = savedRemaining;
+    var running = false, finished = false, endAt = 0, raf = null, bgTimer = null;
 
     function validHex(h) { return /^#([0-9A-F]{3}){1,2}$/i.test(h.trim()); }
     function formatHex(h) {
@@ -439,103 +767,78 @@
       return h.toUpperCase();
     }
 
-    function parseClockToSec(t) {
-      if (!t) return null;
-      var clean = t.trim().toLowerCase();
-      var parts = clean.split(':').map(function (p) { return parseInt(p, 10); });
-      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return (parts[0] * 3600) + (parts[1] * 60);
-      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
-      return null;
-    }
-
-    function parseDuration(val) {
-      if (!val) return null;
-      var str = val.trim().toLowerCase();
-      var totalSec = 0;
-      if (str.includes('h') || str.includes('m') || str.includes('s')) {
-        var hMatch = str.match(/(\d+(?:\.\d+)?)\s*h/);
-        var mMatch = str.match(/(\d+(?:\.\d+)?)\s*m/);
-        var sMatch = str.match(/(\d+(?:\.\d+)?)\s*s/);
-        if (hMatch) totalSec += parseFloat(hMatch[1]) * 3600;
-        if (mMatch) totalSec += parseFloat(mMatch[1]) * 60;
-        if (sMatch) totalSec += parseFloat(sMatch[1]);
-        return totalSec > 0 ? Math.round(totalSec * 1000) : null;
-      }
-      if (str.includes(':')) {
-        var parts = str.split(':').map(function (p) { return parseFloat(p) || 0; });
-        if (parts.length === 3) totalSec = (parts[0] * 3600) + (parts[1] * 60) + parts[2];
-        else if (parts.length === 2) totalSec = (parts[0] * 60) + parts[1];
-        return totalSec > 0 ? Math.round(totalSec * 1000) : null;
-      }
-      var num = parseFloat(str);
-      return !isNaN(num) && num > 0 ? Math.round(num * 60 * 1000) : null;
-    }
-
-    function showConfirm() { confirmBtn.classList.add('show'); }
-    function hideConfirm() { confirmBtn.classList.remove('show'); }
-
-    function calculateRangeDiff() {
-      var sFrom = parseClockToSec(fromIn.value);
-      var sTo = parseClockToSec(toIn.value);
-      var sNow = parseClockToSec(nowIn.value);
-
-      if (sFrom !== null && sTo !== null) {
-        var totalSec = sTo - sFrom;
-        if (totalSec <= 0) totalSec += 24 * 3600;
-        durationMs = Math.max(1000, totalSec * 1000);
-
-        if (sNow !== null) {
-          var remainSec = sTo - sNow;
-          if (remainSec <= 0 && sTo <= sFrom) remainSec += 24 * 3600;
-          remainSec = Math.max(0, Math.min(totalSec, remainSec));
-          remainingMs = remainSec * 1000;
-        } else {
-          remainingMs = durationMs;
-        }
-
-        saveState();
-        draw();
-        render();
-        start();
-        hideConfirm();
-      }
-    }
-
-    var savedDuration = parseInt(localStorage.getItem('vt_saved_duration'), 10) || 1500000;
-    var savedRemaining = parseInt(localStorage.getItem('vt_saved_remaining'), 10) || savedDuration;
-    var durationMs = savedDuration;
-    var remainingMs = savedRemaining;
-    var running = false, finished = false, endAt = 0, raf = null, bgTimer = null;
-
-    var pageColor = localStorage.getItem('vt_saved_page') || '#4d4c4c';
-    var bgColor = localStorage.getItem('vt_saved_bg') || '#000000';
-    var fgColor = localStorage.getItem('vt_saved_fg') || '#4c4c4c';
-
-    document.documentElement.style.backgroundColor = pageColor;
-    document.body.style.backgroundColor = pageColor;
-    pageColorIn.value = pageColor;
-    pageHexIn.value = pageColor.toUpperCase();
-
-    discIn.value = fgColor;
-    fgHexIn.value = fgColor.toUpperCase();
-    bgIn.value = bgColor;
-    bgHexIn.value = bgColor.toUpperCase();
-
-    function setPageColor(color) {
-      pageColor = color;
-      document.documentElement.style.backgroundColor = color;
+    function applyPageColor(color) {
+      document.documentElement.style.setProperty('--page-bg', color);
       document.body.style.backgroundColor = color;
       pageColorIn.value = color;
       pageHexIn.value = color.toUpperCase();
-      saveState();
+    }
+
+    function syncModeAppearance() {
+      if (activeMode === 'custom') {
+        pomoToggle.classList.remove('pomo-active');
+        pomoToggle.classList.add('timer-active');
+        pomoTitleHeading.textContent = 'TIMER';
+
+        modeBar.classList.add('fell-behind');
+        stage.classList.add('enlarged');
+
+        pomoSettingsSection.classList.remove('active');
+        standardPageColorWrap.style.display = 'flex';
+        customIn.style.display = 'block';
+        rangeWrap.style.display = 'flex';
+        cycleBadge.classList.remove('show');
+        applyPageColor(customPageColor);
+      } else {
+        pomoToggle.classList.remove('timer-active');
+        pomoToggle.classList.add('pomo-active');
+        pomoTitleHeading.textContent = 'POMODORO';
+
+        modeBar.classList.remove('fell-behind');
+        stage.classList.remove('enlarged');
+
+        pomoSettingsSection.classList.add('active');
+        standardPageColorWrap.style.display = 'none';
+        customIn.style.display = 'none';
+        rangeWrap.style.display = 'none';
+        cycleBadge.classList.add('show');
+        cycleBadge.textContent = '#' + pomoCycleCount + ' / ' + pomoInterval;
+
+        if (activeMode === 'pomodoro') applyPageColor(colorFocus);
+        else if (activeMode === 'short') applyPageColor(colorShort);
+        else if (activeMode === 'long') applyPageColor(colorLong);
+
+        modeTabs.forEach(function (tab) {
+          if (tab.getAttribute('data-mode') === activeMode) {
+            tab.classList.add('active');
+          } else {
+            tab.classList.remove('active');
+          }
+        });
+
+        updateSlider();
+      }
+
+      setTimeout(resize, 300);
+      setTimeout(resize, 560);
     }
 
     function saveState() {
+      localStorage.setItem('vt_active_mode', activeMode);
+      localStorage.setItem('vt_pomo_cycle', pomoCycleCount);
       localStorage.setItem('vt_saved_duration', durationMs);
       localStorage.setItem('vt_saved_remaining', remainingMs);
-      localStorage.setItem('vt_saved_page', pageColor);
+      localStorage.setItem('vt_saved_page', customPageColor);
       localStorage.setItem('vt_saved_bg', bgColor);
       localStorage.setItem('vt_saved_fg', fgColor);
+      localStorage.setItem('vt_pomo_focus_min', pomoFocusMin);
+      localStorage.setItem('vt_pomo_short_min', pomoShortMin);
+      localStorage.setItem('vt_pomo_long_min', pomoLongMin);
+      localStorage.setItem('vt_pomo_interval', pomoInterval);
+      localStorage.setItem('vt_color_focus', colorFocus);
+      localStorage.setItem('vt_color_short', colorShort);
+      localStorage.setItem('vt_color_long', colorLong);
+      localStorage.setItem('vt_tab_text_color', tabTextColor);
     }
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -580,7 +883,6 @@
         draw();
         render();
         complete();
-        saveState();
       }
     }
 
@@ -596,12 +898,8 @@
 
     function start() {
       if (running) return;
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-
       if (finished) { finished = false; timeEl.classList.remove('finished'); remainingMs = durationMs; }
       if (remainingMs <= 0) remainingMs = durationMs;
-      stopAlarm();
       running = true;
       endAt = Date.now() + remainingMs;
       setBtn();
@@ -633,7 +931,24 @@
       timeEl.classList.add('finished');
       setBtn();
       render();
-      startAlarm();
+      triggerAlarm();
+
+      if (activeMode !== 'custom') {
+        setTimeout(function () {
+          if (activeMode === 'pomodoro') {
+            if (pomoCycleCount >= pomoInterval) {
+              pomoCycleCount = 1;
+              switchMode('long', true);
+            } else {
+              pomoCycleCount++;
+              switchMode('short', true);
+            }
+          } else {
+            switchMode('pomodoro', true);
+          }
+        }, 1200);
+      }
+      saveState();
     }
 
     function reset() {
@@ -641,7 +956,6 @@
       finished = false;
       if (raf) cancelAnimationFrame(raf);
       if (bgTimer) clearInterval(bgTimer);
-      stopAlarm();
       timeEl.classList.remove('finished');
       remainingMs = durationMs;
       setBtn();
@@ -656,6 +970,109 @@
       remainingMs = durationMs;
       saveState();
       if (!running && !finished) { draw(); render(); setBtn(); }
+    }
+
+    function switchMode(newMode, autoStart) {
+      activeMode = newMode;
+      finished = false;
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      if (bgTimer) clearInterval(bgTimer);
+      timeEl.classList.remove('finished');
+
+      if (activeMode === 'pomodoro') durationMs = pomoFocusMin * 60 * 1000;
+      else if (activeMode === 'short') durationMs = pomoShortMin * 60 * 1000;
+      else if (activeMode === 'long') durationMs = pomoLongMin * 60 * 1000;
+      else durationMs = savedDuration;
+
+      remainingMs = durationMs;
+      syncModeAppearance();
+      draw();
+      render();
+      setBtn();
+      saveState();
+
+      if (autoStart) {
+        start();
+      }
+    }
+
+    pomoToggle.addEventListener('click', function () {
+      if (activeMode === 'custom') {
+        switchMode('pomodoro', false);
+      } else {
+        switchMode('custom', false);
+      }
+    });
+
+    modeTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var m = tab.getAttribute('data-mode');
+        switchMode(m, false);
+      });
+    });
+
+    function showConfirm() { confirmBtn.classList.add('show'); }
+    function hideConfirm() { confirmBtn.classList.remove('show'); }
+
+    function parseClockToSec(t) {
+      if (!t) return null;
+      var clean = t.trim().toLowerCase();
+      var parts = clean.split(':').map(function (p) { return parseInt(p, 10); });
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return (parts[0] * 3600) + (parts[1] * 60);
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+      return null;
+    }
+
+    function parseDuration(val) {
+      if (!val) return null;
+      var str = val.trim().toLowerCase();
+      var totalSec = 0;
+      if (str.includes('h') || str.includes('m') || str.includes('s')) {
+        var hMatch = str.match(/(\d+(?:\.\d+)?)\s*h/);
+        var mMatch = str.match(/(\d+(?:\.\d+)?)\s*m/);
+        var sMatch = str.match(/(\d+(?:\.\d+)?)\s*s/);
+        if (hMatch) totalSec += parseFloat(hMatch[1]) * 3600;
+        if (mMatch) totalSec += parseFloat(mMatch[1]) * 60;
+        if (sMatch) totalSec += parseFloat(sMatch[1]);
+        return totalSec > 0 ? Math.round(totalSec * 1000) : null;
+      }
+      if (str.includes(':')) {
+        var parts = str.split(':').map(function (p) { return parseFloat(p) || 0; });
+        if (parts.length === 3) totalSec = (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        else if (parts.length === 2) totalSec = (parts[0] * 60) + parts[1];
+        return totalSec > 0 ? Math.round(totalSec * 1000) : null;
+      }
+      var num = parseFloat(str);
+      return !isNaN(num) && num > 0 ? Math.round(num * 60 * 1000) : null;
+    }
+
+    function calculateRangeDiff() {
+      var sFrom = parseClockToSec(fromIn.value);
+      var sTo = parseClockToSec(toIn.value);
+      var sNow = parseClockToSec(nowIn.value);
+
+      if (sFrom !== null && sTo !== null) {
+        var totalSec = sTo - sFrom;
+        if (totalSec <= 0) totalSec += 24 * 3600;
+        durationMs = Math.max(1000, totalSec * 1000);
+        savedDuration = durationMs;
+
+        if (sNow !== null) {
+          var remainSec = sTo - sNow;
+          if (remainSec <= 0 && sTo <= sFrom) remainSec += 24 * 3600;
+          remainSec = Math.max(0, Math.min(totalSec, remainSec));
+          remainingMs = remainSec * 1000;
+        } else {
+          remainingMs = durationMs;
+        }
+
+        saveState();
+        draw();
+        render();
+        start();
+        hideConfirm();
+      }
     }
 
     var fake = false;
@@ -695,42 +1112,102 @@
       }
     });
 
-    pageColorIn.addEventListener('input', function () { setPageColor(pageColorIn.value); });
-    pageHexIn.addEventListener('change', function () {
-      var val = formatHex(pageHexIn.value);
-      if (validHex(val)) setPageColor(val);
-    });
-
-    discIn.addEventListener('input', function () {
-      fgColor = discIn.value;
-      fgHexIn.value = fgColor.toUpperCase();
-      draw();
+    pageColorIn.addEventListener('input', function () {
+      customPageColor = pageColorIn.value;
+      applyPageColor(customPageColor);
       saveState();
     });
-    fgHexIn.addEventListener('change', function () {
-      var val = formatHex(fgHexIn.value);
+    pageHexIn.addEventListener('change', function () {
+      var val = formatHex(pageHexIn.value);
       if (validHex(val)) {
-        fgColor = val;
-        discIn.value = val;
-        fgHexIn.value = val;
-        draw();
+        customPageColor = val;
+        applyPageColor(val);
         saveState();
       }
     });
 
+    discIn.addEventListener('input', function () {
+      fgColor = discIn.value; fgHexIn.value = fgColor.toUpperCase();
+      draw(); saveState();
+    });
+    fgHexIn.addEventListener('change', function () {
+      var val = formatHex(fgHexIn.value);
+      if (validHex(val)) { fgColor = val; discIn.value = val; fgHexIn.value = val; draw(); saveState(); }
+    });
+
     bgIn.addEventListener('input', function () {
-      bgColor = bgIn.value;
-      bgHexIn.value = bgColor.toUpperCase();
-      draw();
-      saveState();
+      bgColor = bgIn.value; bgHexIn.value = bgColor.toUpperCase();
+      draw(); saveState();
     });
     bgHexIn.addEventListener('change', function () {
       var val = formatHex(bgHexIn.value);
+      if (validHex(val)) { bgColor = val; bgIn.value = val; bgHexIn.value = val; draw(); saveState(); }
+    });
+
+    pomoFocusIn.addEventListener('change', function () {
+      pomoFocusMin = Math.max(1, parseInt(pomoFocusIn.value, 10) || 25);
+      if (activeMode === 'pomodoro') setDuration(pomoFocusMin * 60 * 1000);
+      saveState();
+    });
+    pomoShortIn.addEventListener('change', function () {
+      pomoShortMin = Math.max(1, parseInt(pomoShortIn.value, 10) || 5);
+      if (activeMode === 'short') setDuration(pomoShortMin * 60 * 1000);
+      saveState();
+    });
+    pomoLongIn.addEventListener('change', function () {
+      pomoLongMin = Math.max(1, parseInt(pomoLongIn.value, 10) || 15);
+      if (activeMode === 'long') setDuration(pomoLongMin * 60 * 1000);
+      saveState();
+    });
+    pomoIntervalIn.addEventListener('change', function () {
+      pomoInterval = Math.max(1, parseInt(pomoIntervalIn.value, 10) || 4);
+      syncModeAppearance();
+      saveState();
+    });
+
+    colorPomoFocus.addEventListener('input', function () {
+      colorFocus = colorPomoFocus.value; hexPomoFocus.value = colorFocus.toUpperCase();
+      if (activeMode === 'pomodoro') applyPageColor(colorFocus);
+      saveState();
+    });
+    hexPomoFocus.addEventListener('change', function () {
+      var val = formatHex(hexPomoFocus.value);
+      if (validHex(val)) { colorFocus = val; colorPomoFocus.value = val; if (activeMode === 'pomodoro') applyPageColor(val); saveState(); }
+    });
+
+    colorPomoShort.addEventListener('input', function () {
+      colorShort = colorPomoShort.value; hexPomoShort.value = colorShort.toUpperCase();
+      if (activeMode === 'short') applyPageColor(colorShort);
+      saveState();
+    });
+    hexPomoShort.addEventListener('change', function () {
+      var val = formatHex(hexPomoShort.value);
+      if (validHex(val)) { colorShort = val; colorPomoShort.value = val; if (activeMode === 'short') applyPageColor(val); saveState(); }
+    });
+
+    colorPomoLong.addEventListener('input', function () {
+      colorLong = colorPomoLong.value; hexPomoLong.value = colorLong.toUpperCase();
+      if (activeMode === 'long') applyPageColor(colorLong);
+      saveState();
+    });
+    hexPomoLong.addEventListener('change', function () {
+      var val = formatHex(hexPomoLong.value);
+      if (validHex(val)) { colorLong = val; colorPomoLong.value = val; if (activeMode === 'long') applyPageColor(val); saveState(); }
+    });
+
+    colorTabTextIn.addEventListener('input', function () {
+      tabTextColor = colorTabTextIn.value;
+      hexTabTextIn.value = tabTextColor.toUpperCase();
+      document.documentElement.style.setProperty('--tab-text-color', tabTextColor);
+      saveState();
+    });
+    hexTabTextIn.addEventListener('change', function () {
+      var val = formatHex(hexTabTextIn.value);
       if (validHex(val)) {
-        bgColor = val;
-        bgIn.value = val;
-        bgHexIn.value = val;
-        draw();
+        tabTextColor = val;
+        colorTabTextIn.value = val;
+        hexTabTextIn.value = val;
+        document.documentElement.style.setProperty('--tab-text-color', val);
         saveState();
       }
     });
@@ -738,16 +1215,12 @@
     customIn.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         var ms = parseDuration(customIn.value);
-        if (ms && ms > 0) {
-          setDuration(ms);
-          start();
-          customIn.blur();
-        }
+        if (ms && ms > 0) { savedDuration = ms; setDuration(ms); start(); customIn.blur(); }
       }
     });
     customIn.addEventListener('change', function () {
       var ms = parseDuration(customIn.value);
-      if (ms && ms > 0) setDuration(ms);
+      if (ms && ms > 0) { savedDuration = ms; setDuration(ms); }
     });
 
     setNowBtn.addEventListener('click', function () {
@@ -769,8 +1242,12 @@
       if (e.key === 'Escape' && fake) exitFS();
     });
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', function () {
+      resize();
+      updateSlider();
+    });
 
+    syncModeAppearance();
     resize();
     render();
     setBtn();
